@@ -290,16 +290,65 @@ body {
   padding-left: 4px;
 }
 
-.day-section {
-  margin-bottom: 20px;
+/* Date Tabs */
+.date-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 12px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-.day-title {
-  font-size: 0.95rem;
-  font-weight: 700;
+.date-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.date-tab {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 20px;
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.date-tab.active {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+.date-tab-label {
+  font-size: 0.8rem;
+  font-weight: 600;
   color: var(--text);
-  margin-bottom: 10px;
-  padding-left: 4px;
+  white-space: nowrap;
+}
+
+.date-tab-preview {
+  font-size: 0.7rem;
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+
+/* Day content fade */
+.day-content {
+  animation: dayFadeIn 0.25s ease-out;
+}
+
+@keyframes dayFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .timeblock-card {

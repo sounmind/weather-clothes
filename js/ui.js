@@ -65,11 +65,12 @@ function renderRecommendation(weather) {
   }
 }
 
+/** 날짜별 데이터 캐시 */
+let dayDataCache = [];
+let currentDayIndex = 0;
+
 /** 일주일치 시간대별 가이드 렌더링 */
 function renderWeeklyTimeBlocks(hourly) {
-  const container = $('#weekly-guide');
-  const summaryContainer = $('#weekly-summary');
-
   // 날짜별로 그룹핑
   const byDate = {};
   hourly.forEach((h) => {
@@ -78,25 +79,31 @@ function renderWeeklyTimeBlocks(hourly) {
   });
 
   const dates = Object.keys(byDate).sort();
-  let html = '';
-  const allSummaries = [];
+  dayDataCache = [];
 
   dates.forEach((date, idx) => {
     const dayHourly = byDate[date];
     const { blockResults, summary } = analyzeTimeBlocks(dayHourly);
-    allSummaries.push(...summary);
 
-    const dateLabel = formatDateLabel(date, idx);
+    // 대표 날씨 이모지: 첫 번째 유효 블록의 dominantCode
+    const firstResult = blockResults.find((b) => b.result)?.result;
+    const dominantWmo = firstResult
+      ? (WMO_CODES[firstResult.dominantCode] || { emoji: '❓' })
+      : { emoji: '❓' };
 
-    html += `<div class="day-section">`;
-    html += `<h3 class="day-title">${dateLabel}</h3>`;
+    // 하루 전체 최저/최고 체감 온도
+    const allApparents = blockResults
+      .filter((b) => b.result)
+      .flatMap((b) => [b.result.minApparent, b.result.maxApparent]);
+    const dayMin = allApparents.length > 0 ? Math.min(...allApparents) : null;
+    const dayMax = allApparents.length > 0 ? Math.max(...allApparents) : null;
 
+    // 시간대 블록 HTML 생성
+    let blocksHtml = '';
     blockResults.forEach(({ block, result, sameAsPrev }) => {
       if (!result) return;
-
       const wmo = WMO_CODES[result.dominantCode] || { emoji: '❓', label: '알 수 없음' };
-
-      html += `
+      blocksHtml += `
         <div class="timeblock-card" style="--accent: ${result.level.color}">
           <div class="timeblock-header">
             <span class="timeblock-emoji">${block.emoji}</span>
@@ -115,16 +122,69 @@ function renderWeeklyTimeBlocks(hourly) {
         </div>`;
     });
 
-    html += `</div>`;
+    dayDataCache.push({
+      date,
+      label: formatDateLabel(date, idx),
+      weatherEmoji: dominantWmo.emoji,
+      dayMin,
+      dayMax,
+      blocksHtml,
+      summary,
+    });
   });
 
-  container.innerHTML = html;
+  renderDateTabs();
+  showDay(0);
+}
 
-  // 핵심 요약 (중복 제거)
-  const uniqueSummaries = [...new Set(allSummaries)];
+/** 날짜 탭 바 렌더링 */
+function renderDateTabs() {
+  const tabsContainer = $('#date-tabs');
+  tabsContainer.innerHTML = dayDataCache
+    .map((day, idx) => {
+      const tempRange = day.dayMin !== null ? `${day.dayMin}°~${day.dayMax}°` : '';
+      return `<button class="date-tab" data-index="${idx}">
+        <span class="date-tab-label">${day.label}</span>
+        <span class="date-tab-preview">${day.weatherEmoji} ${tempRange}</span>
+      </button>`;
+    })
+    .join('');
+
+  tabsContainer.addEventListener('click', (e) => {
+    const tab = e.target.closest('.date-tab');
+    if (!tab) return;
+    showDay(Number(tab.dataset.index));
+  });
+}
+
+/** 선택된 날짜의 시간대 블록 + 요약 표시 */
+function showDay(index) {
+  currentDayIndex = index;
+  const day = dayDataCache[index];
+  if (!day) return;
+
+  const container = $('#weekly-guide');
+  const summaryContainer = $('#weekly-summary');
+
+  // 시간대 블록 교체 (fade 애니메이션)
+  container.innerHTML = `<div class="day-content">${day.blocksHtml}</div>`;
+
+  // 선택된 날짜 요약
+  const uniqueSummaries = [...new Set(day.summary)];
   summaryContainer.innerHTML = uniqueSummaries
     .map((s) => `<div class="summary-item">${s}</div>`)
     .join('');
+
+  // 탭 active 상태 토글
+  document.querySelectorAll('.date-tab').forEach((tab, i) => {
+    tab.classList.toggle('active', i === index);
+  });
+
+  // 선택된 탭이 보이도록 스크롤
+  const activeTab = document.querySelector('.date-tab.active');
+  if (activeTab) {
+    activeTab.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  }
 }
 
 function renderClothesTable(clothes) {
