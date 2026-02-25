@@ -11,7 +11,7 @@ export function getApiKey() {
 }
 
 export function setApiKey(key) {
-  localStorage.setItem('kma-api-key', key.trim());
+  localStorage.setItem('kma-api-key', key.replace(/\s/g, ''));
 }
 
 /* ── 기상청 단기예보 ── */
@@ -36,12 +36,7 @@ export async function fetchWeather(lat, lon) {
     ny: String(ny),
   });
 
-  // serviceKey는 이미 인코딩된 상태이므로 수동 추가
-  const url = `${KMA_BASE}/getVilageFcst?serviceKey=${apiKey}&${params}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('날씨 데이터를 가져올 수 없습니다');
-
-  const json = await res.json();
+  const json = await fetchKma('getVilageFcst', params);
   const header = json.response?.header;
 
   if (!header || header.resultCode !== '00') {
@@ -260,6 +255,51 @@ function getVilageFcstBaseDateTime() {
   }
 
   return { baseDate, baseTime };
+}
+
+/* ── URL 빌더 ── */
+
+/**
+ * API 키를 정규화한다.
+ * Encoding 키(%XX 포함)든 Decoding 키(원문)든 → 항상 올바르게 인코딩된 값으로 변환.
+ */
+function normalizeApiKey(key) {
+  try {
+    return encodeURIComponent(decodeURIComponent(key));
+  } catch {
+    return encodeURIComponent(key);
+  }
+}
+
+async function fetchKma(endpoint, params) {
+  const apiKey = getApiKey();
+  const encodedKey = normalizeApiKey(apiKey);
+  const url = `${KMA_BASE}/${endpoint}?serviceKey=${encodedKey}&${params}`;
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(
+        'API 키 인증 실패.\n\n확인사항:\n'
+        + '1. 공공데이터포털에서 "기상청_단기예보 조회서비스" 활용신청을 했는지\n'
+        + '2. 신청 후 1~2시간 대기했는지\n'
+        + '3. 마이페이지에서 키가 "승인" 상태인지'
+      );
+    }
+    throw new Error(`날씨 데이터를 가져올 수 없습니다 (${res.status})`);
+  }
+
+  const text = await res.text();
+  let json;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    if (text.includes('SERVICE_KEY_IS_NOT_REGISTERED'))
+      throw new Error('API 키가 등록되지 않았습니다.\n공공데이터포털 마이페이지에서 키를 확인해주세요.');
+    throw new Error('기상청 API 응답을 처리할 수 없습니다.');
+  }
+
+  return json;
 }
 
 /* ── 에러 메시지 ── */
