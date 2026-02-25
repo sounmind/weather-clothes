@@ -1,10 +1,11 @@
-const CACHE_NAME = 'weather-clothes-v1';
+const CACHE_NAME = 'weather-clothes-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/css/style.css',
   '/js/app.js',
   '/js/api.js',
+  '/js/grid.js',
   '/js/constants.js',
   '/js/recommendation.js',
   '/js/ui.js',
@@ -27,8 +28,8 @@ self.addEventListener('activate', (e) => {
 });
 
 self.addEventListener('fetch', (e) => {
-  // API 요청은 네트워크 우선
-  if (e.request.url.includes('api.open-meteo.com')) {
+  // 기상청 API 요청은 네트워크 우선
+  if (e.request.url.includes('apis.data.go.kr')) {
     e.respondWith(
       fetch(e.request).catch(() => caches.match(e.request))
     );

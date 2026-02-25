@@ -1,7 +1,12 @@
-import { fetchWeather, fetchLocationName } from './api.js';
+import { fetchWeather, fetchLocationName, getApiKey, setApiKey } from './api.js';
 import { showScreen, showError, renderMain } from './ui.js';
 
 async function init() {
+  if (!getApiKey()) {
+    showScreen('setup');
+    return;
+  }
+
   showScreen('loading');
 
   try {
@@ -45,6 +50,23 @@ function getPosition() {
     );
   });
 }
+
+// API 키 설정 폼
+document.getElementById('api-key-form')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = document.getElementById('api-key-input');
+  const key = input.value.trim();
+  if (key) {
+    setApiKey(key);
+    init();
+  }
+});
+
+// 설정 버튼 (API 키 재설정)
+document.getElementById('settings-btn')?.addEventListener('click', () => {
+  document.getElementById('api-key-input').value = getApiKey();
+  showScreen('setup');
+});
 
 // 재시도 버튼
 document.getElementById('retry-btn')?.addEventListener('click', init);
