@@ -100,6 +100,7 @@ export const CLOTHING_LEVELS = [
 
 // 시간대 블록 정의
 export const TIME_BLOCKS = [
+  { key: 'dawn', label: '새벽', emoji: '🌃', startHour: 0, endHour: 6 },
   { key: 'morning', label: '아침', emoji: '🌅', startHour: 7, endHour: 12 },
   { key: 'afternoon', label: '오후', emoji: '🌤', startHour: 13, endHour: 18 },
   { key: 'evening', label: '저녁', emoji: '🌙', startHour: 19, endHour: 23 },

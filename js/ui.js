@@ -21,7 +21,7 @@ export function renderMain(current, hourly, locationName) {
   renderLocation(locationName);
   renderCurrentWeather(current);
   renderRecommendation(current);
-  renderWeeklyTimeBlocks(hourly);
+  renderForecastTimeBlocks(hourly);
   showScreen('main');
 }
 
@@ -69,8 +69,8 @@ function renderRecommendation(weather) {
 let dayDataCache = [];
 let currentDayIndex = 0;
 
-/** 일주일치 시간대별 가이드 렌더링 */
-function renderWeeklyTimeBlocks(hourly) {
+/** 단기예보 시간대별 가이드 렌더링 */
+function renderForecastTimeBlocks(hourly) {
   // 날짜별로 그룹핑
   const byDate = {};
   hourly.forEach((h) => {
@@ -163,8 +163,8 @@ function showDay(index) {
   const day = dayDataCache[index];
   if (!day) return;
 
-  const container = $('#weekly-guide');
-  const summaryContainer = $('#weekly-summary');
+  const container = $('#forecast-guide');
+  const summaryContainer = $('#forecast-summary');
 
   // 시간대 블록 교체 (fade 애니메이션)
   container.innerHTML = `<div class="day-content">${day.blocksHtml}</div>`;
