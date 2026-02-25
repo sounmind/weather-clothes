@@ -46,7 +46,10 @@
     <div class="error-container">
       <div class="error-icon">😥</div>
       <p id="error-message" class="error-message"></p>
-      <button id="retry-btn" class="btn">다시 시도</button>
+      <div class="error-actions">
+        <button id="retry-btn" class="btn">다시 시도</button>
+        <button id="reset-key-btn" class="btn btn-outline">API 키 재설정</button>
+      </div>
     </div>
   </div>
 
@@ -107,7 +110,16 @@
   <script type="module" src="js/app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'activated' && navigator.serviceWorker.controller) {
+              location.reload();
+            }
+          });
+        });
+      });
     }
   </script>
 </body>

@@ -71,6 +71,12 @@ document.getElementById('settings-btn')?.addEventListener('click', () => {
 // 재시도 버튼
 document.getElementById('retry-btn')?.addEventListener('click', init);
 
+// API 키 재설정 버튼 (에러 화면)
+document.getElementById('reset-key-btn')?.addEventListener('click', () => {
+  document.getElementById('api-key-input').value = getApiKey();
+  showScreen('setup');
+});
+
 // 새로고침 버튼
 document.getElementById('refresh-btn')?.addEventListener('click', init);
 

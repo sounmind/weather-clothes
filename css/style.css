@@ -112,6 +112,24 @@ body {
   background: #2563eb;
 }
 
+.btn-outline {
+  background: transparent;
+  border: 2px solid #3b82f6;
+  color: #3b82f6;
+}
+
+.btn-outline:active {
+  background: #eff6ff;
+}
+
+.error-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 280px;
+}
+
 /* ===== Setup (API Key) ===== */
 .setup-container {
   display: flex;
